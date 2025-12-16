@@ -1,0 +1,16 @@
+{
+  "name": "adb-desktop-tool",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ADB Desktop Tool — Electron + Next.js + TypeScript",
+  "scripts": {
+    "dev": "pnpm --filter electron dev",
+    "build": "pnpm -w build",
+    "package:win": "pnpm -w build && pnpm --filter electron package:win",
+    "package:mac": "pnpm -w build && pnpm --filter electron package:mac",
+    "package:linux": "pnpm -w build && pnpm --filter electron package:linux"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

@@ -1,0 +1,27 @@
+# Node
+node_modules/
+npm-debug.log
+pnpm-debug.log
+
+
+# Logs
+logs/
+*.log
+*.tmp
+
+
+# Build artifacts
+dist/
+build/
+out/
+.next/
+
+
+# Electron
+*.asar
+*.unpacked/
+
+
+# OS files
+.DS_Store
+Thumbs.db
