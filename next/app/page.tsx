@@ -1,29 +1,33 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-
-declare global {
-  interface Window {
-    electronAPI: any;
-  }
-}
+import ApkCard from "../components/ApkCard";
 
 export default function HomePage() {
   const [devices, setDevices] = useState<any[]>([]);
-  const [apkFiles, setApkFiles] = useState<string[]>([]);
+  const [apkList, setApkList] = useState<any[]>([]);
 
   async function refreshDevices() {
     const list = await window.electronAPI.getDevices();
     setDevices(list);
   }
 
-  function onDrop(e: React.DragEvent) {
+  async function onDrop(e: React.DragEvent) {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
-    const apks = files
-      .filter((f) => f.name.endsWith(".apk"))
-      .map((f) => f.path);
-    setApkFiles((prev) => [...prev, ...apks]);
+    const apks = files.filter((f) => f.name.endsWith(".apk"));
+
+    for (const apk of apks) {
+      const meta = await window.electronAPI.parseApk(apk.path);
+
+      setApkList((prev) => [
+        ...prev,
+        {
+          path: apk.path,
+          ...(meta || { packageName: "Unknown / Failed to parse" }),
+        },
+      ]);
+    }
   }
 
   useEffect(() => {
@@ -57,13 +61,12 @@ export default function HomePage() {
         onDragOver={(e) => e.preventDefault()}
       >
         <h2 className="text-xl font-semibold">Drag & Drop APK Files</h2>
-        <ul className="mt-3">
-          {apkFiles.map((apk) => (
-            <li key={apk} className="text-sm text-gray-700">
-              {apk}
-            </li>
+
+        <div className="mt-4 space-y-3">
+          {apkList.map((apk, idx) => (
+            <ApkCard key={idx} meta={apk} />
           ))}
-        </ul>
+        </div>
       </section>
     </div>
   );
