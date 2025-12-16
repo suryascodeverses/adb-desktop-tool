@@ -1,5 +1,11 @@
 packages:
-  - "shared"
-  - "adb"
-  - "electron"
-  - "next"
+  - shared
+  - adb
+  - electron
+  - next
+
+ignoredBuiltDependencies:
+  - esbuild
+
+onlyBuiltDependencies:
+  - electron

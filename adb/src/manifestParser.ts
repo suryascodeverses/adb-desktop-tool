@@ -1,5 +1,5 @@
 import AdmZip from "adm-zip";
-import type { ManifestInfo } from "@adb/shared/dist/index";
+import type { ManifestInfo } from "@adb/shared";
 
 /**
  * Minimal APK manifest parser.

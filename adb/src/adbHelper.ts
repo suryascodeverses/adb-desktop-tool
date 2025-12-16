@@ -1,6 +1,6 @@
 import { spawn, execSync } from "child_process";
 import { EventEmitter } from "events";
-import type { InstallResult, DeviceInfo } from "@adb/shared/dist/index";
+import type { InstallResult, DeviceInfo } from "@adb/shared";
 
 /**
  * AdbHelper — Node.js wrapper around ADB
@@ -104,7 +104,9 @@ export class AdbHelper extends EventEmitter {
 
     child.stdout.on("data", (d) => {
       const text = d.toString();
-      text.split(/\r?\n/).forEach((line) => line && callback(line));
+      text.split(/\r?\n/).forEach((line: string) => {
+        if (line) callback(line);
+      });
     });
 
     child.stderr.on("data", (d) => callback(d.toString()));

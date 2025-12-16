@@ -1,5 +1,5 @@
 {
-  "name": "@adb/core",
+  "name": "@adb/shared",
   "version": "1.0.0",
   "private": true,
   "main": "dist/index.js",
@@ -7,13 +7,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },
-  "dependencies": {
-    "@adb/shared": "workspace:*",
-    "adm-zip": "^0.5.10"
-  },
   "devDependencies": {
-    "@types/adm-zip": "^0.5.7",
-    "@types/node": "^25.0.2",
     "typescript": "^5.3.3"
   }
 }

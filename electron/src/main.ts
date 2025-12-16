@@ -1,8 +1,7 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import path from "path";
 import { spawn } from "child_process";
-import { AdbHelper } from "@adb/core/dist/adbHelper";
-import { parseManifest } from "@adb/core/dist/manifestParser";
+import { AdbHelper, parseManifest } from "@adb/core";
 
 let mainWindow: BrowserWindow | null = null;
 const adb = new AdbHelper();

@@ -6,7 +6,11 @@
     "outDir": "dist",
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@adb/core": ["../adb/dist"]
+    }
   },
   "include": ["src/**/*"]
 }
