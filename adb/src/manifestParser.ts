@@ -1,10 +1,7 @@
 import AdmZip from "adm-zip";
-import type { ManifestInfo } from "@adb/shared";
+import type { ManifestInfo } from "@adb/shared/dist/index";
+import { extractManifestInfo } from "./axml/manifestExtractor";
 
-/**
- * Minimal APK manifest parser.
- * If APK has binary AXML, this returns null (Batch 3 will include full parser).
- */
 export async function parseManifest(
   apkPath: string
 ): Promise<ManifestInfo | null> {
@@ -13,18 +10,18 @@ export async function parseManifest(
     const entry = zip.getEntry("AndroidManifest.xml");
     if (!entry) return null;
 
-    const data = entry.getData();
-    const text = data.toString("utf8");
+    const buffer = entry.getData();
 
-    // If readable XML (some APKs ship plain XML)
-    if (text.includes("<manifest")) {
-      const pkg = text.match(/package=\"([^\"]+)\"/);
-      return pkg ? { packageName: pkg[1] } : null;
+    // Binary AXML
+    if (buffer.readUInt32LE(0) === 0x00080003) {
+      return extractManifestInfo(buffer);
     }
 
-    // Otherwise it's Binary XML (AXML) — will implement in Batch 3
-    return null;
-  } catch (err) {
+    // Plain XML fallback
+    const text = buffer.toString("utf8");
+    const pkg = text.match(/package=\"([^\"]+)\"/);
+    return pkg ? { packageName: pkg[1] } : null;
+  } catch {
     return null;
   }
 }
