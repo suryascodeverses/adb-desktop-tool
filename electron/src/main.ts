@@ -2,6 +2,7 @@ import { app, BrowserWindow } from "electron";
 import * as path from "path";
 import * as electron from "electron";
 import ApkParser from "app-info-parser";
+import { execFile } from "child_process";
 
 import { spawn } from "child_process";
 import { AdbHelper, parseManifest } from "@adb/core";
@@ -227,4 +228,81 @@ ipcMain.handle("apk:select", async () => {
   }
 
   return parsedResults;
+});
+
+function execAdb(args: string[]): Promise<string> {
+  return new Promise((resolve, reject) => {
+    execFile("adb", args, { encoding: "utf8" }, (err, stdout, stderr) => {
+      if (err) {
+        reject(stderr || err.message);
+      } else {
+        resolve(stdout);
+      }
+    });
+  });
+}
+
+type InstalledPackage = {
+  packageName: string;
+  path: string;
+};
+
+function parsePmList(output: string): InstalledPackage[] {
+  return output
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      // package:/data/app/.../base.apk=com.example.app
+      const [pkgPath, pkgName] = line.replace("package:", "").split("=");
+      if (!pkgName || !pkgPath) return null;
+      return {
+        packageName: pkgName,
+        path: pkgPath,
+      };
+    })
+    .filter(Boolean) as InstalledPackage[];
+}
+
+ipcMain.handle("device:listPackages", async (_, deviceId: string) => {
+  console.log("Listing packages for device:", deviceId);
+
+  const output = await execAdb([
+    "-s",
+    deviceId,
+    "shell",
+    "pm",
+    "list",
+    "packages",
+    "-f",
+  ]);
+
+  const parsed = parsePmList(output);
+  console.log(`Found ${parsed.length} packages`);
+  return parsed;
+});
+
+ipcMain.handle("apk:install", async (_, deviceId, apkPath) => {
+  await execAdb(["-s", deviceId, "install", "-r", apkPath]);
+  return true;
+});
+
+ipcMain.handle("apk:uninstall", async (_, deviceId, packageName) => {
+  await execAdb(["-s", deviceId, "uninstall", packageName]);
+  return true;
+});
+
+ipcMain.handle("apk:launch", async (_, deviceId, packageName) => {
+  await execAdb([
+    "-s",
+    deviceId,
+    "shell",
+    "monkey",
+    "-p",
+    packageName,
+    "-c",
+    "android.intent.category.LAUNCHER",
+    "1"
+  ]);
+  return true;
 });

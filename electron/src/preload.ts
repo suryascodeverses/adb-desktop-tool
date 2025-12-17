@@ -17,4 +17,15 @@ contextBridge.exposeInMainWorld("electronAPI", {
     console.log("preload.selectApks called");
     return ipcRenderer.invoke("apk:select");
   },
+  listInstalledPackages: (deviceId: string) =>
+    ipcRenderer.invoke("device:listPackages", deviceId),
+
+  installApk: (deviceId: string, apkPath: string) =>
+    ipcRenderer.invoke("apk:install", deviceId, apkPath),
+
+  uninstallApk: (deviceId: string, packageName: string) =>
+    ipcRenderer.invoke("apk:uninstall", deviceId, packageName),
+
+  launchApk: (deviceId: string, packageName: string) =>
+    ipcRenderer.invoke("apk:launch", deviceId, packageName),
 });

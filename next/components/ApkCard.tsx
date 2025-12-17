@@ -2,124 +2,199 @@
 
 import React, { useState } from "react";
 
+/* =======================
+   Types
+======================= */
+type Device = {
+  id: string;
+  display: string;
+};
+
+type InstalledPackage = {
+  packageName: string;
+  path: string;
+};
+
+type ApkEntry = {
+  path: string;
+  meta: {
+    packageName: string;
+    versionName?: string;
+    versionCode?: number;
+  };
+};
+
+export type InstallState = "NOT_INSTALLED" | "INSTALLED" | "UPGRADE_AVAILABLE";
+
 export interface ApkMeta {
   path: string;
-  packageName: string;
-  versionName?: string;
-  versionCode?: string;
-  launchableActivity?: string;
+  meta: {
+    packageName: string;
+    versionName?: string;
+    versionCode?: number;
+  };
 }
 
-export default function ApkCard({
-  meta,
-  deviceId,
-  installedPackages,
-}: {
-  meta: ApkMeta;
+interface ApkCardProps {
+  apk: ApkMeta;
   deviceId: string | null;
-  installedPackages?: string[];
-}) {
-  const isInstalled =
-    meta.packageName && installedPackages?.includes(meta.packageName);
+  installState: InstallState;
+  onActionComplete: () => void;
+}
 
+/* =======================
+   Component
+======================= */
+
+export default function ApkCard({
+  apk,
+  deviceId,
+  installState,
+  onActionComplete,
+}: ApkCardProps) {
   const [status, setStatus] = useState<string>("");
 
-  async function installApk() {
-    if (!deviceId) return setStatus("No device selected");
+  const pkg = apk.meta.packageName;
 
-    // Warnings
-    if (isInstalled) {
-      setStatus("Warning: App already installed — reinstalling...");
+  /* =======================
+     Actions
+  ======================= */
+
+  async function installApk() {
+    if (!deviceId) {
+      setStatus("No device selected");
+      return;
     }
 
-    setStatus("Installing...");
+    setStatus(
+      installState === "UPGRADE_AVAILABLE" ? "Upgrading..." : "Installing..."
+    );
 
-    const res = await window.electronAPI.install(deviceId, meta.path);
-
-    if (res.success) {
-      setStatus("Installed successfully!");
-    } else {
-      setStatus("Install failed: " + res.output);
+    try {
+      await window.electronAPI.installApk(deviceId, apk.path);
+      setStatus("Install successful");
+      onActionComplete();
+    } catch (err: any) {
+      setStatus("Install failed");
     }
   }
 
   async function uninstallApk() {
-    if (!deviceId) return setStatus("No device selected");
+    if (!deviceId) {
+      setStatus("No device selected");
+      return;
+    }
 
-    if (!isInstalled) {
-      setStatus("App is not installed");
+    if (!pkg) {
+      setStatus("Invalid package name");
       return;
     }
 
     setStatus("Uninstalling...");
 
-    const res = await window.electronAPI.uninstall(deviceId, meta.packageName);
-
-    setStatus(res.success ? "Uninstalled!" : "Uninstall failed");
+    try {
+      await window.electronAPI.uninstallApk(deviceId, pkg);
+      setStatus("Uninstalled");
+      onActionComplete();
+    } catch (err: any) {
+      setStatus("Uninstall failed");
+    }
   }
 
   async function launchApk() {
-    if (!deviceId) return setStatus("No device selected");
+    if (!deviceId) {
+      setStatus("No device selected");
+      return;
+    }
 
-    if (!isInstalled) {
-      setStatus("App is not installed");
+    if (!pkg) {
+      setStatus("Invalid package name");
       return;
     }
 
     setStatus("Launching...");
 
-    const res = await window.electronAPI.launch(deviceId, meta.packageName);
-
-    setStatus(res.success ? "Launched!" : "Launch failed");
+    try {
+      await window.electronAPI.launchApk(deviceId, pkg);
+      setStatus("Launched");
+    } catch (err: any) {
+      setStatus("Launch failed");
+    }
   }
+
+  /* =======================
+     Render
+  ======================= */
 
   return (
     <div className="border rounded p-4 bg-white shadow space-y-2 text-sm">
-      <div className="font-semibold text-base">{meta.packageName}</div>
-      <div className="text-gray-700 break-all">Path: {meta.path}</div>
+      <div className="font-semibold text-base">{pkg}</div>
 
-      {meta.versionName && (
-        <div className="text-gray-700">Version: {meta.versionName}</div>
-      )}
-
-      {meta.versionCode && (
-        <div className="text-gray-700">Version Code: {meta.versionCode}</div>
-      )}
-
-      {meta.launchableActivity && (
-        <div className="text-gray-700">
-          Launch Activity: {meta.launchableActivity}
-        </div>
-      )}
-      {isInstalled ? (
-        <div className="text-green-700 font-medium">Installed</div>
-      ) : (
-        <div className="text-red-700 font-medium">Not Installed</div>
-      )}
-      {/* ACTION BUTTONS */}
-      <div className="flex gap-2 pt-2">
-        <button
-          onClick={installApk}
-          className="px-2 py-1 bg-green-600 text-white rounded"
-        >
-          Install
-        </button>
-
-        <button
-          onClick={uninstallApk}
-          className="px-2 py-1 bg-red-600 text-white rounded"
-        >
-          Uninstall
-        </button>
-
-        <button
-          onClick={launchApk}
-          className="px-2 py-1 bg-blue-600 text-white rounded"
-        >
-          Launch
-        </button>
+      <div className="text-gray-700 break-all">
+        <span className="font-medium">APK Path:</span> {apk.path}
       </div>
 
+      {apk.meta.versionName && (
+        <div className="text-gray-700">Version: {apk.meta.versionName}</div>
+      )}
+
+      {apk.meta.versionCode !== undefined && (
+        <div className="text-gray-700">
+          Version Code: {apk.meta.versionCode}
+        </div>
+      )}
+
+      {/* =======================
+          Install State
+      ======================= */}
+      {installState === "INSTALLED" && (
+        <div className="text-green-700 font-medium">Installed</div>
+      )}
+
+      {installState === "UPGRADE_AVAILABLE" && (
+        <div className="text-yellow-700 font-medium">Upgrade Available</div>
+      )}
+
+      {installState === "NOT_INSTALLED" && (
+        <div className="text-red-700 font-medium">Not Installed</div>
+      )}
+
+      {/* =======================
+          Action Buttons
+      ======================= */}
+      <div className="flex gap-2 pt-2">
+        {(installState === "NOT_INSTALLED" ||
+          installState === "UPGRADE_AVAILABLE") && (
+          <button
+            onClick={installApk}
+            className="px-2 py-1 bg-green-600 text-white rounded"
+          >
+            {installState === "UPGRADE_AVAILABLE" ? "Upgrade" : "Install"}
+          </button>
+        )}
+
+        {installState === "INSTALLED" && (
+          <>
+            <button
+              onClick={launchApk}
+              className="px-2 py-1 bg-blue-600 text-white rounded"
+            >
+              Launch
+            </button>
+
+            <button
+              onClick={uninstallApk}
+              className="px-2 py-1 bg-red-600 text-white rounded"
+            >
+              Uninstall
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* =======================
+          Status
+      ======================= */}
       {status && <div className="text-gray-800 text-xs mt-2">{status}</div>}
     </div>
   );
