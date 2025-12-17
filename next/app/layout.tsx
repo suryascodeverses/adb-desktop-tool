@@ -1,6 +1,5 @@
 import "./globals.css";
 import React from "react";
-import "../types/electron-api.d.ts";
 
 export const metadata = {
   title: "ADB Desktop Tool",

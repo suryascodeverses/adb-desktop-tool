@@ -8,7 +8,10 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": ["node"],
+
+    "allowJs": true,
+    "typeRoots": ["./src/types", "../shared/types", "./node_modules/@types"]
   },
   "include": ["src/**/*"]
 }

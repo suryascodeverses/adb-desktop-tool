@@ -4,16 +4,31 @@
   "private": true,
   "description": "ADB Desktop Tool — Electron + Next.js + TypeScript",
   "scripts": {
-    "dev": "pnpm --filter electron dev",
-    "build": "pnpm -w build",
-    "package:win": "pnpm -w build && pnpm --filter electron package:win",
-    "package:mac": "pnpm -w build && pnpm --filter electron package:mac",
-    "package:linux": "pnpm -w build && pnpm --filter electron package:linux"
+    "clean": "rimraf node_modules */node_modules */dist */.next",
+    "clean:build": "rimraf shared/dist adb/dist electron/dist next/.next",
+    "build:shared": "pnpm --filter @adb/shared build",
+    "build:adb": "pnpm --filter @adb/core build",
+    "build:next": "pnpm --filter @adb/next-ui build",
+    "build:electron": "pnpm --filter @adb/electron build",
+    "build:core": "pnpm run build:shared && pnpm run build:adb",
+    "build:ui": "pnpm run build:next",
+    "build:dev": "pnpm run build:shared && pnpm run build:adb && pnpm run build:electron",
+    "build:all": "pnpm run build:shared && pnpm run build:adb && pnpm run build:next && pnpm run build:electron",
+    "dev:next": "pnpm --filter @adb/next-ui dev",
+    "dev:electron": "pnpm --filter @adb/electron dev",
+    "dev": "pnpm run dev:next & pnpm run dev:electron",
+    "dev:clean": "pnpm run clean:build && pnpm run build:core && pnpm run dev",
+    "package:win": "pnpm run build:all && pnpm --filter @adb/electron package:win",
+    "package:mac": "pnpm run build:all && pnpm --filter @adb/electron package:mac",
+    "package:linux": "pnpm run build:all && pnpm --filter @adb/electron package:linux",
+    "check:workspaces": "pnpm -w list",
+    "check:adb": "node adb/dist/manifestParser.js"
   },
   "devDependencies": {
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "app-info-parser": "^1.1.6",
     "electron": "^33.4.11"
   }
 }

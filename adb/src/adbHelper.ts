@@ -72,6 +72,20 @@ export class AdbHelper extends EventEmitter {
     });
   }
 
+  uninstall(deviceId: string, packageName: string): Promise<InstallResult> {
+    return new Promise((resolve) => {
+      const args = ["-s", deviceId, "uninstall", packageName];
+      const child = spawn(this.adbPath, args);
+
+      let output = "";
+      child.stdout.on("data", (d) => (output += d.toString()));
+      child.stderr.on("data", (d) => (output += d.toString()));
+      child.on("close", () => {
+        resolve({ success: output.includes("Success"), output });
+      });
+    });
+  }
+
   /** Launch Application */
   launch(deviceId: string, packageName: string) {
     return new Promise<InstallResult>((resolve) => {
@@ -167,5 +181,18 @@ export class AdbHelper extends EventEmitter {
 
       child.on("close", () => resolve({ success: true, output: out }));
     });
+  }
+
+  async getInstalledPackages(deviceId: string): Promise<string[]> {
+    const out = execSync(
+      `${this.adbPath} -s ${deviceId} shell pm list packages`,
+      {
+        encoding: "utf8",
+      }
+    );
+    return out
+      .split(/\r?\n/)
+      .map((line) => line.replace("package:", "").trim())
+      .filter(Boolean);
   }
 }

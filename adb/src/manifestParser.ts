@@ -1,27 +1,21 @@
-import AdmZip from "adm-zip";
-import type { ManifestInfo } from "@adb/shared/dist/index";
-import { extractManifestInfo } from "./axml/manifestExtractor";
+import AppInfoParser from "app-info-parser";
+import type { ManifestInfo } from "@adb/shared";
 
 export async function parseManifest(
   apkPath: string
 ): Promise<ManifestInfo | null> {
   try {
-    const zip = new AdmZip(apkPath);
-    const entry = zip.getEntry("AndroidManifest.xml");
-    if (!entry) return null;
+    const parser = new AppInfoParser(apkPath);
+    const info = await parser.parse();
 
-    const buffer = entry.getData();
-
-    // Binary AXML
-    if (buffer.readUInt32LE(0) === 0x00080003) {
-      return extractManifestInfo(buffer);
-    }
-
-    // Plain XML fallback
-    const text = buffer.toString("utf8");
-    const pkg = text.match(/package=\"([^\"]+)\"/);
-    return pkg ? { packageName: pkg[1] } : null;
-  } catch {
+    return {
+      packageName: info.package,
+      versionName: info.versionName,
+      versionCode: info.versionCode?.toString(),
+      launchableActivity: undefined, // app-info-parser does not expose this reliably
+    };
+  } catch (err) {
+    console.error("Manifest parse error:", err);
     return null;
   }
 }

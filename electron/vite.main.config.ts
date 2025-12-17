@@ -13,6 +13,9 @@ export default defineConfig({
     },
     rollupOptions: {
       external: [
+        "app-info-parser",
+        "os",
+        "util",
         "electron",
         "path",
         "fs",
