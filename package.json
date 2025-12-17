@@ -4,7 +4,7 @@
   "private": true,
   "description": "ADB Desktop Tool — Electron + Next.js + TypeScript",
   "scripts": {
-    "clean": "rimraf node_modules */node_modules */dist */.next",
+    "clean": "rimraf node_modules adb/node_modules electron/node_modules next/node_modules shared/node_modules adb/dist electron/dist shared/dist next/.next",
     "clean:build": "rimraf shared/dist adb/dist electron/dist next/.next",
     "build:shared": "pnpm --filter @adb/shared build",
     "build:adb": "pnpm --filter @adb/core build",
@@ -25,6 +25,7 @@
     "check:adb": "node adb/dist/manifestParser.js"
   },
   "devDependencies": {
+    "rimraf": "^6.1.2",
     "typescript": "^5.3.3"
   },
   "dependencies": {
