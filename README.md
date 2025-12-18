@@ -64,7 +64,7 @@ The ADB Desktop Tool provides a secure, user-friendly interface for managing And
 ## 🏗️ Architecture Layers
 
 ### System Architecture Diagram
-
+```
 ┌─────────────────────────────────────────────────────────┐
 │                    Next.js UI (Renderer)                 │
 │  ┌──────────────────────────────────────────────────┐  │
@@ -100,7 +100,7 @@ The ADB Desktop Tool provides a secure, user-friendly interface for managing And
                     │ Android Device│
                     │ (Source Truth)│
                     └──────────────┘
-
+```
 
 ### Layer Details
 
