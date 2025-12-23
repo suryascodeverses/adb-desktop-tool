@@ -28,4 +28,6 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   launchApk: (deviceId: string, packageName: string) =>
     ipcRenderer.invoke("apk:launch", deviceId, packageName),
+  getSnapshot: (deviceId: string) =>
+    ipcRenderer.invoke("device:snapshot", deviceId),
 });

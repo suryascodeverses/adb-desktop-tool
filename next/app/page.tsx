@@ -15,6 +15,8 @@ type Device = {
 type InstalledPackage = {
   packageName: string;
   path: string;
+  versionName?: string;
+  versionCode?: number;
 };
 
 type ApkEntry = {
@@ -26,10 +28,7 @@ type ApkEntry = {
   };
 };
 
-export type InstallState =
-  | "NOT_INSTALLED"
-  | "INSTALLED"
-  | "UPGRADE_AVAILABLE";
+export type InstallState = "NOT_INSTALLED" | "INSTALLED" | "UPGRADE_AVAILABLE";
 
 /* =======================
    Page Component
@@ -96,13 +95,21 @@ export default function HomePage() {
   ======================= */
 
   function getInstallState(apk: ApkEntry): InstallState {
-    if (!apk.meta?.packageName) return "NOT_INSTALLED";
+    const pkg = apk.meta?.packageName;
+    if (!pkg) return "NOT_INSTALLED";
 
-    const installed = installedPackages.find(
-      (p) => p.packageName === apk.meta.packageName
-    );
+    const installed = installedPackages.find((p) => p.packageName === pkg);
 
     if (!installed) return "NOT_INSTALLED";
+
+    // Version comparison (optional but correct)
+    if (
+      apk.meta.versionCode !== undefined &&
+      installed.versionCode !== undefined &&
+      installed.versionCode < apk.meta.versionCode
+    ) {
+      return "UPGRADE_AVAILABLE";
+    }
 
     return "INSTALLED";
   }

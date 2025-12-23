@@ -30,8 +30,9 @@
     "package:mac": "pnpm run build:all && pnpm --filter @adb/electron package:mac",
     "package:linux": "pnpm run build:all && pnpm --filter @adb/electron package:linux",
    
-    "check:workspaces": "pnpm -w list"
-
+    "check:workspaces": "pnpm -w list",
+    
+    "tree": "tree -I 'node_modules|dist|.next|*.log|.git|.DS_Store|*.lock|coverage' -a"  
   },
   "devDependencies": {
     "rimraf": "^6.1.2",

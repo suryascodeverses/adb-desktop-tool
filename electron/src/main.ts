@@ -289,12 +289,12 @@ ipcMain.handle("device:listPackages", async (_, deviceId: string) => {
 
 ipcMain.handle("apk:install", async (_, deviceId, apkPath) => {
   await adb.exec(["-s", deviceId, "install", "-r", apkPath]);
-  return true;
+  return getDeviceSnapshot(deviceId);
 });
 
 ipcMain.handle("apk:uninstall", async (_, deviceId, packageName) => {
   await adb.exec(["-s", deviceId, "uninstall", packageName]);
-  return true;
+  return getDeviceSnapshot(deviceId);
 });
 
 ipcMain.handle("apk:launch", async (_, deviceId, packageName) => {
@@ -322,7 +322,6 @@ async function getDeviceSnapshot(deviceId: string): Promise<DeviceSnapshot> {
     "packages",
     "-f",
   ]);
-  
 
   const packages: Record<string, DevicePackageInfo> = {};
 
@@ -341,3 +340,5 @@ async function getDeviceSnapshot(deviceId: string): Promise<DeviceSnapshot> {
     collectedAt: Date.now(),
   };
 }
+
+ipcMain.handle("device:snapshot", (_, deviceId) => getDeviceSnapshot(deviceId));
