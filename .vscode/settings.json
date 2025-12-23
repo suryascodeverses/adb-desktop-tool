@@ -1,0 +1,40 @@
+{
+  // Auto format when saving
+  "editor.formatOnSave": false,
+  
+  // Auto format when pasting
+  "editor.formatOnPaste": false,
+  
+  // Format while typing (can be slow)
+  "editor.formatOnType": false,
+  
+  // Auto save files when focus is lost
+  "files.autoSave": "onFocusChange",
+
+  "editor.formatOnSaveMode": "modificationsIfAvailable",
+  
+  // Use Prettier as default formatter
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  
+  // Language-specific formatting
+  "[javascript]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.formatOnSave": true
+  },
+  "[html]": {
+    "editor.formatOnSave": true
+  },
+  "[css]": {
+    "editor.formatOnSave": true
+  },
+  "[scss]": {
+    "editor.formatOnSave": true
+  }
+}
