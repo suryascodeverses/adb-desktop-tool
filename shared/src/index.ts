@@ -11,3 +11,6 @@ export * from "./enums/install-state";
 // ipc
 export * from "./ipc/requests";
 export * from "./ipc/responses";
+
+export * from "./domain/logcat";
+export * from "./enums/logcat";

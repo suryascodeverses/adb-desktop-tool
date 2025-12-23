@@ -7,3 +7,9 @@ export interface UninstallApkRequest {
   deviceId: string;
   packageName: string;
 }
+
+export interface StartLogcatRequest {
+  deviceId?: string;
+}
+
+export interface StopLogcatRequest {}
