@@ -3,12 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "main": "dist/main.js",
-  "scripts": {
-    "dev": "vite build --config vite.main.config.ts && vite build --config vite.preload.config.ts && cd . && electron dist/main.js",
+   "scripts": {
+    "dev": "concurrently \"vite build --watch --config vite.main.config.ts\" \"vite build --watch --config vite.preload.config.ts\" \"pnpm run electron:watch\"",
+
+    "electron:watch": "wait-on dist/main.js && electron dist/main.js",
+
     "build": "vite build --config vite.main.config.ts && vite build --config vite.preload.config.ts",
-    "package:win": "electron-builder --win",
-    "package:mac": "electron-builder --mac",
-    "package:linux": "electron-builder --linux"
+    "start": "electron dist/main.js",
+    
+    "package:win": "pnpm run build && electron-builder --win",
+    "package:mac": "pnpm run build && electron-builder --mac",
+    "package:linux": "pnpm run build && electron-builder --linux"
   },
   "devDependencies": {
     "electron-builder": "^24.9.1",
@@ -16,6 +21,8 @@
     "vite": "^5.0.0"
   },
   "dependencies": {
-    "electron": "^33.4.11"
+    "electron": "^33.4.11",
+    "@adb/shared": "workspace:*",
+    "@adb/core": "workspace:*"
   }
 }

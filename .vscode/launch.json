@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Electron: Main",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@adb/electron", "start"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "outputCapture": "std"
+    },
+    {
+      "name": "Next.js: UI",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "webRoot": "${workspaceFolder}/next"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Dev: Full App",
+      "configurations": ["Electron: Main", "Next.js: UI"]
+    }
+  ]
+}

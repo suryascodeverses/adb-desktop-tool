@@ -2,8 +2,11 @@
   "name": "@adb/shared",
   "version": "1.0.0",
   "private": true,
-  "main": "dist/index.js",
+  "main": "dist/index.d.ts",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },

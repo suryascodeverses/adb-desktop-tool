@@ -1,3 +1,5 @@
+/* /shared/tsconfig.json */
+
 {
   "compilerOptions": {
     "target": "ES2022",
@@ -8,6 +10,8 @@
     "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,
+    "composite": true,
+
     "skipLibCheck": true
   },
   "include": ["src/**/*"]

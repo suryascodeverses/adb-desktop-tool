@@ -8,11 +8,9 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "baseUrl": ".",
-    "paths": {
-      "@adb/core": ["../adb/dist"]
-    },
-    "allowJs": true,
-    "typeRoots": ["../shared/types", "./node_modules/@types"]
+    "composite": true,
+
+    "allowJs": true
   },
   "include": ["src/**/*"]
 }

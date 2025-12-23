@@ -1,4 +1,4 @@
-import { spawn, execSync } from "child_process";
+import { spawn, execSync, execFile } from "child_process";
 import { EventEmitter } from "events";
 import type { InstallResult, DeviceInfo } from "@adb/shared";
 
@@ -18,6 +18,15 @@ export class AdbHelper extends EventEmitter {
   /** Change adb executable path */
   setAdbPath(path: string) {
     this.adbPath = path;
+  }
+
+  async exec(args: string[]): Promise<string> {
+    return new Promise((resolve, reject) => {
+      execFile("adb", args, { encoding: "utf8" }, (err, stdout, stderr) => {
+        if (err) reject(stderr || err.message);
+        else resolve(stdout);
+      });
+    });
   }
 
   /** Run simple adb command synchronously */

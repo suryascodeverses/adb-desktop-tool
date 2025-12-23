@@ -6,8 +6,8 @@ import { execFile } from "child_process";
 
 import { spawn } from "child_process";
 import { AdbHelper, parseManifest } from "@adb/core";
-import * as fs from "fs";
-import * as os from "os";
+import type { DeviceSnapshot, DevicePackageInfo } from "@adb/shared";
+
 let mainWindow: BrowserWindow | null = null;
 const adb = new AdbHelper();
 const { dialog, ipcMain } = electron;
@@ -230,6 +230,9 @@ ipcMain.handle("apk:select", async () => {
   return parsedResults;
 });
 
+/*
+// Helper to exec adb commands -- already in adbHelper.ts
+
 function execAdb(args: string[]): Promise<string> {
   return new Promise((resolve, reject) => {
     execFile("adb", args, { encoding: "utf8" }, (err, stdout, stderr) => {
@@ -240,7 +243,9 @@ function execAdb(args: string[]): Promise<string> {
       }
     });
   });
-}
+} 
+
+*/
 
 type InstalledPackage = {
   packageName: string;
@@ -267,7 +272,7 @@ function parsePmList(output: string): InstalledPackage[] {
 ipcMain.handle("device:listPackages", async (_, deviceId: string) => {
   console.log("Listing packages for device:", deviceId);
 
-  const output = await execAdb([
+  const output = await adb.exec([
     "-s",
     deviceId,
     "shell",
@@ -283,17 +288,17 @@ ipcMain.handle("device:listPackages", async (_, deviceId: string) => {
 });
 
 ipcMain.handle("apk:install", async (_, deviceId, apkPath) => {
-  await execAdb(["-s", deviceId, "install", "-r", apkPath]);
+  await adb.exec(["-s", deviceId, "install", "-r", apkPath]);
   return true;
 });
 
 ipcMain.handle("apk:uninstall", async (_, deviceId, packageName) => {
-  await execAdb(["-s", deviceId, "uninstall", packageName]);
+  await adb.exec(["-s", deviceId, "uninstall", packageName]);
   return true;
 });
 
 ipcMain.handle("apk:launch", async (_, deviceId, packageName) => {
-  await execAdb([
+  await adb.exec([
     "-s",
     deviceId,
     "shell",
@@ -302,7 +307,37 @@ ipcMain.handle("apk:launch", async (_, deviceId, packageName) => {
     packageName,
     "-c",
     "android.intent.category.LAUNCHER",
-    "1"
+    "1",
   ]);
   return true;
 });
+
+async function getDeviceSnapshot(deviceId: string): Promise<DeviceSnapshot> {
+  const output = await adb.exec([
+    "-s",
+    deviceId,
+    "shell",
+    "pm",
+    "list",
+    "packages",
+    "-f",
+  ]);
+  
+
+  const packages: Record<string, DevicePackageInfo> = {};
+
+  output.split("\n").forEach((line: string) => {
+    // package:/data/app/xxx/base.apk=com.example.app
+    const match = line.match(/^package:(.+?)=(.+)$/);
+    if (!match) return;
+
+    const [, path, packageName] = match;
+    packages[packageName] = { packageName, path };
+  });
+
+  return {
+    deviceId,
+    packages,
+    collectedAt: Date.now(),
+  };
+}

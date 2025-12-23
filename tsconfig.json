@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",
     "target": "ES2022",
     "module": "CommonJS",
     "strict": true,
@@ -7,5 +8,10 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
+  "references": [
+    { "path": "./shared" },
+    { "path": "./electron" },
+    { "path": "./adb" }
+  ],
   "exclude": ["node_modules"]
 }
