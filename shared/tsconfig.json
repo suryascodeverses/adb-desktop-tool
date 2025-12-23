@@ -5,7 +5,6 @@
     "target": "ES2022",
     "module": "CommonJS",
     "declaration": true,
-    "emitDeclarationOnly": true,
     "outDir": "dist",
     "rootDir": "src",
     "strict": true,

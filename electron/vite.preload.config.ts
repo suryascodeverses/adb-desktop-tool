@@ -12,7 +12,12 @@ export default defineConfig({
       fileName: () => "preload.js",
     },
     rollupOptions: {
-      external: ["electron", "path", "fs"],
+      external: [
+        "electron",
+        "path",
+        "fs",
+        "@adb/shared", // Add this
+      ],
     },
   },
 });

@@ -10,6 +10,13 @@
   "scripts": {
     "build": "tsc -p tsconfig.json"
   },
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "devDependencies": {
     "typescript": "^5.3.3"
   }

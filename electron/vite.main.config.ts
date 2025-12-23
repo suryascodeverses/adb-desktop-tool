@@ -20,7 +20,8 @@ export default defineConfig({
         "path",
         "fs",
         "child_process",
-        "@adb/core", // 🔑 THIS IS THE FIX
+        "@adb/core",
+        "@adb/shared", // Add this
       ],
     },
   },

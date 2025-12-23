@@ -12,7 +12,6 @@
     "composite": true,
 
     "allowJs": true,
-    "typeRoots": ["./src/types", "../shared/global-types", "./node_modules/@types"]
   },
   "include": ["src/**/*"]
 }
