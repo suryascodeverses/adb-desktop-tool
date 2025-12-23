@@ -1,16 +1,25 @@
+console.log("[MAIN] main.ts loaded");
+
 import { app, BrowserWindow } from "electron";
 import * as path from "path";
 import * as electron from "electron";
 import ApkParser from "app-info-parser";
-import { execFile } from "child_process";
+import { execFile, spawn, ChildProcessWithoutNullStreams } from "child_process";
+const { dialog, ipcMain } = electron;
 
-import { spawn } from "child_process";
 import { AdbHelper, parseManifest } from "@adb/core";
 import type { DeviceSnapshot, DevicePackageInfo } from "@adb/shared";
 
+/* logcat modules */
+
+// import { ChildProcessWithoutNullStreams } from "node:child_process";
+import { LogcatLevel, LogcatLine } from "@adb/shared";
+/* logcat modules */
+
 let mainWindow: BrowserWindow | null = null;
+let logcatProcess: ChildProcessWithoutNullStreams | null = null;
+
 const adb = new AdbHelper();
-const { dialog, ipcMain } = electron;
 
 const IS_DEV = !app.isPackaged;
 const NEXT_PORT = 3000;
@@ -72,6 +81,12 @@ app.on("window-all-closed", () => {
 // ------------------------------
 // IPC: ADB Commands
 // ------------------------------
+
+ipcMain.handle("ping", () => {
+  console.log("[MAIN] ping received");
+  return "pong";
+});
+
 ipcMain.handle("adb:getDevices", async () => {
   return await adb.getDevices();
 });
@@ -342,3 +357,72 @@ async function getDeviceSnapshot(deviceId: string): Promise<DeviceSnapshot> {
 }
 
 ipcMain.handle("device:snapshot", (_, deviceId) => getDeviceSnapshot(deviceId));
+
+/* ---------------- LOGCAT ---------------- */
+
+ipcMain.handle("logcat:start", async (_evt, { deviceId }) => {
+  console.log("[MAIN] logcat:start handler called");
+
+  if (logcatProcess) return { ok: true };
+
+  const args = [];
+  if (deviceId) args.push("-s", deviceId);
+  args.push("logcat", "-v", "threadtime");
+
+  logcatProcess = spawn("adb", args);
+
+  logcatProcess.stdout.on("data", (buf) => {
+    const lines = buf.toString().split("\n").filter(Boolean);
+
+    for (const raw of lines) {
+      const parsed = parseLogcatLine(raw);
+      if (!parsed) continue;
+
+      mainWindow?.webContents.send("logcat:line", { line: parsed });
+    }
+  });
+
+  logcatProcess.on("exit", () => {
+    logcatProcess = null;
+  });
+
+  return { ok: true };
+});
+
+ipcMain.handle("logcat:stop", async () => {
+  if (logcatProcess) {
+    logcatProcess.kill();
+    logcatProcess = null;
+  }
+  return { ok: true };
+});
+
+/* ----------- Parser (minimal, safe) ----------- */
+
+function parseLogcatLine(raw: string): LogcatLine | null {
+  // Example:
+  // 06-09 14:32:10.123  1234  1234 D TagName: message
+  const match = raw.match(
+    /^(\d\d-\d\d\s\d\d:\d\d:\d\d\.\d+)\s+(\d+)\s+(\d+)\s+([VDIWEF])\s+([^:]+):\s+(.*)$/
+  );
+
+  if (!match) {
+    return {
+      level: LogcatLevel.DEBUG,
+      message: raw,
+      raw,
+    };
+  }
+
+  const [, timestamp, pid, tid, level, tag, message] = match;
+
+  return {
+    timestamp,
+    pid: Number(pid),
+    tid: Number(tid),
+    level: level as LogcatLevel,
+    tag,
+    message,
+    raw,
+  };
+}

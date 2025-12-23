@@ -1,4 +1,9 @@
 import { contextBridge, ipcRenderer } from "electron";
+import {
+  StartLogcatRequest,
+  StopLogcatRequest,
+  LogcatLineEvent,
+} from "@adb/shared";
 
 contextBridge.exposeInMainWorld("electronAPI", {
   getDevices: () => ipcRenderer.invoke("adb:getDevices"),
@@ -30,4 +35,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.invoke("apk:launch", deviceId, packageName),
   getSnapshot: (deviceId: string) =>
     ipcRenderer.invoke("device:snapshot", deviceId),
+  logcat: {
+    start: (req: StartLogcatRequest) => ipcRenderer.invoke("logcat:start", req),
+    stop: (req?: StopLogcatRequest) => ipcRenderer.invoke("logcat:stop", req),
+    onLine: (cb: (evt: LogcatLineEvent) => void) =>
+      ipcRenderer.on("logcat:line", (_e, payload) => cb(payload)),
+  },
+  ping: () => ipcRenderer.invoke("ping"),
 });

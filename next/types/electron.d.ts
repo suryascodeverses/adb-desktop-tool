@@ -39,6 +39,11 @@ declare global {
       installApk: (deviceId: string, apkPath: string) => Promise<void>;
       uninstallApk: (deviceId: string, packageName: string) => Promise<void>;
       launchApk: (deviceId: string, packageName: string) => Promise<void>;
+      logcat: {
+        start: (req?: any) => Promise<any>;
+        stop: () => Promise<any>;
+        onLine: (cb: (evt: LogcatLineEvent) => void) => void;
+      };
     };
   }
 }

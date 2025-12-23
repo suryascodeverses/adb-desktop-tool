@@ -6,7 +6,6 @@
   "scripts": {
     "clean": "rimraf node_modules adb/node_modules electron/node_modules next/node_modules shared/node_modules adb/dist electron/dist shared/dist next/.next",
     "clean:build": "rimraf shared/dist adb/dist electron/dist next/.next",
-
     "build:shared": "pnpm --filter @adb/shared build",
     "build:adb": "pnpm --filter @adb/core build",
     "build:next": "pnpm --filter @adb/next-ui build",
@@ -15,30 +14,23 @@
     "build:ui": "pnpm run build:next",
     "build:app": "pnpm run build:core && pnpm run build:electron",
     "build": "pnpm run build:app && pnpm run build:ui",
-
     "dev:next": "pnpm --filter @adb/next-ui dev",
     "dev:electron": "pnpm --filter @adb/electron dev",
     "dev": "pnpm run build:core && pnpm run dev:parallel",
     "dev:parallel": "concurrently -k \"pnpm run dev:next\" \"pnpm run dev:electron\"",
     "dev:clean": "pnpm run clean:build && pnpm run build:core && pnpm run dev:parallel",
-
     "start:next": "pnpm --filter @adb/next-ui start",
     "start:electron": "pnpm --filter @adb/electron start",
-
-
     "package:win": "pnpm run build:all && pnpm --filter @adb/electron package:win",
     "package:mac": "pnpm run build:all && pnpm --filter @adb/electron package:mac",
     "package:linux": "pnpm run build:all && pnpm --filter @adb/electron package:linux",
-   
     "check:workspaces": "pnpm -w list",
-    
-    "tree": "tree -I 'node_modules|dist|.next|*.log|.git|.DS_Store|*.lock|coverage' -a"  
+    "tree": "tree -I 'node_modules|dist|.next|*.log|.git|.DS_Store|*.lock|coverage' -a"
   },
   "devDependencies": {
+    "concurrently": "^8.2.2",
     "rimraf": "^6.1.2",
-    "typescript": "^5.3.3",
-    "wait-on": "^9.0.3",
-    "concurrently": "^8.2.2"
+    "typescript": "^5.3.3"
   },
   "dependencies": {
     "app-info-parser": "^1.1.6",
