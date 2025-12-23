@@ -8,7 +8,7 @@ pnpm-debug.log
 logs/
 *.log
 *.tmp
-
+tsconfig.tsbuildinfo
 
 # Build artifacts
 dist/
