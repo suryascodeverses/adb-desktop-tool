@@ -24,6 +24,14 @@ type ApkEntry = {
   };
 };
 
+type ActionStatus =
+  | "IDLE"
+  | "INSTALLING"
+  | "UNINSTALLING"
+  | "LAUNCHING"
+  | "SUCCESS"
+  | "ERROR";
+
 export type InstallState = "NOT_INSTALLED" | "INSTALLED" | "UPGRADE_AVAILABLE";
 
 export interface ApkMeta {
@@ -52,7 +60,10 @@ export default function ApkCard({
   installState,
   onActionComplete,
 }: ApkCardProps) {
-  const [status, setStatus] = useState<string>("");
+  // const [status, setStatus] = useState<string>("");
+
+  const [action, setAction] = useState<ActionStatus>("IDLE");
+  const [message, setMessage] = useState<string>("");
 
   const pkg = apk.meta.packageName;
 
@@ -62,65 +73,85 @@ export default function ApkCard({
 
   async function installApk() {
     if (!deviceId) {
-      setStatus("No device selected");
+      setMessage("No device selected");
+      setAction("ERROR");
       return;
     }
 
-    setStatus(
-      installState === "UPGRADE_AVAILABLE" ? "Upgrading..." : "Installing..."
+    setAction("INSTALLING");
+    setMessage(
+      installState === "UPGRADE_AVAILABLE"
+        ? "Upgrading APK..."
+        : "Installing APK..."
     );
 
     try {
       await window.electronAPI.installApk(deviceId, apk.path);
-      setStatus("Install successful");
+      setAction("SUCCESS");
+      setMessage("Install successful");
       onActionComplete();
+      setTimeout(() => {
+        setAction("IDLE");
+        setMessage("");
+      }, 2000);
     } catch (err: any) {
-      setStatus("Install failed");
+      setAction("ERROR");
+      setMessage(err?.message || "Install failed");
     }
   }
 
   async function uninstallApk() {
-    if (!deviceId) {
-      setStatus("No device selected");
+    if (!deviceId || !pkg) {
+      setAction("ERROR");
+      setMessage("Invalid device or package");
       return;
     }
 
-    if (!pkg) {
-      setStatus("Invalid package name");
-      return;
-    }
-
-    setStatus("Uninstalling...");
+    setAction("UNINSTALLING");
+    setMessage("Uninstalling APK...");
 
     try {
       await window.electronAPI.uninstallApk(deviceId, pkg);
-      setStatus("Uninstalled");
+      setAction("SUCCESS");
+      setMessage("Uninstalled successfully");
       onActionComplete();
+
+      setTimeout(() => {
+        setAction("IDLE");
+        setMessage("");
+      }, 2000);
     } catch (err: any) {
-      setStatus("Uninstall failed");
+      setAction("ERROR");
+      setMessage(err?.message || "Uninstall failed");
     }
   }
 
   async function launchApk() {
-    if (!deviceId) {
-      setStatus("No device selected");
+    if (!deviceId || !pkg) {
+      setAction("ERROR");
+      setMessage("Invalid device or package");
       return;
     }
 
-    if (!pkg) {
-      setStatus("Invalid package name");
-      return;
-    }
-
-    setStatus("Launching...");
+    setAction("LAUNCHING");
+    setMessage("Launching app...");
 
     try {
       await window.electronAPI.launchApk(deviceId, pkg);
-      setStatus("Launched");
+      setAction("SUCCESS");
+      setMessage("App launched");
+
+      setTimeout(() => {
+        setAction("IDLE");
+        setMessage("");
+      }, 2000);
     } catch (err: any) {
-      setStatus("Launch failed");
+      setAction("ERROR");
+      setMessage(err?.message || "Launch failed");
     }
   }
+
+  const busy = action !== "IDLE" && action !== "SUCCESS" && action !== "ERROR";
 
   /* =======================
      Render
@@ -167,9 +198,14 @@ export default function ApkCard({
           installState === "UPGRADE_AVAILABLE") && (
           <button
             onClick={installApk}
+            disabled={busy}
             className="px-2 py-1 bg-green-600 text-white rounded"
           >
-            {installState === "UPGRADE_AVAILABLE" ? "Upgrade" : "Install"}
+            {busy
+              ? "Working..."
+              : installState === "UPGRADE_AVAILABLE"
+              ? "Upgrade"
+              : "Install"}
           </button>
         )}
 
@@ -177,14 +213,20 @@ export default function ApkCard({
           <>
             <button
               onClick={launchApk}
-              className="px-2 py-1 bg-blue-600 text-white rounded"
+              disabled={busy}
+              className={`px-2 py-1 rounded text-white ${
+                busy ? "bg-gray-400" : "bg-blue-600"
+              }`}
             >
               Launch
             </button>
 
             <button
               onClick={uninstallApk}
-              className="px-2 py-1 bg-red-600 text-white rounded"
+              disabled={busy}
+              className={`px-2 py-1 rounded text-white ${
+                busy ? "bg-gray-400" : "bg-red-600"
+              }`}
             >
               Uninstall
             </button>
@@ -195,7 +237,19 @@ export default function ApkCard({
       {/* =======================
           Status
       ======================= */}
-      {status && <div className="text-gray-800 text-xs mt-2">{status}</div>}
+      {message && (
+        <div
+          className={`text-xs mt-2 ${
+            action === "ERROR"
+              ? "text-red-700"
+              : action === "SUCCESS"
+              ? "text-green-700"
+              : "text-gray-700"
+          }`}
+        >
+          {message}
+        </div>
+      )}
     </div>
   );
 }
