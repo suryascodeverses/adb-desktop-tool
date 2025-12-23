@@ -43,6 +43,10 @@ declare global {
         start: (req?: any) => Promise<any>;
         stop: () => Promise<any>;
         onLine: (cb: (evt: LogcatLineEvent) => void) => void;
+        pause: () => Promise<any>;
+        resume: () => Promise<any>;
+        filter: (r: any) => Promise<any>;
+        export: (r: any) => Promise<any>;
       };
     };
   }

@@ -1,6 +1,6 @@
 {
   // Auto format when saving
-  "editor.formatOnSave": false,
+  "editor.formatOnSave": true,
   
   // Auto format when pasting
   "editor.formatOnPaste": false,

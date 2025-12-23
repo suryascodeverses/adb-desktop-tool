@@ -14,6 +14,7 @@ import type { DeviceSnapshot, DevicePackageInfo } from "@adb/shared";
 
 // import { ChildProcessWithoutNullStreams } from "node:child_process";
 import { LogcatLevel, LogcatLine } from "@adb/shared";
+import { LogcatManager } from "./logcat/logcatManager";
 /* logcat modules */
 
 let mainWindow: BrowserWindow | null = null;
@@ -359,34 +360,57 @@ async function getDeviceSnapshot(deviceId: string): Promise<DeviceSnapshot> {
 ipcMain.handle("device:snapshot", (_, deviceId) => getDeviceSnapshot(deviceId));
 
 /* ---------------- LOGCAT ---------------- */
+const logcat = new LogcatManager();
 
-ipcMain.handle("logcat:start", async (_evt, { deviceId }) => {
-  console.log("[MAIN] logcat:start handler called");
+// ipcMain.handle("logcat:start", async (_evt, { deviceId }) => {
+//   console.log("[MAIN] logcat:start handler called");
 
-  if (logcatProcess) return { ok: true };
+//   if (logcatProcess) return { ok: true };
 
-  const args = [];
-  if (deviceId) args.push("-s", deviceId);
-  args.push("logcat", "-v", "threadtime");
+//   const args = [];
+//   if (deviceId) args.push("-s", deviceId);
+//   args.push("logcat", "-v", "threadtime");
 
-  logcatProcess = spawn("adb", args);
+//   logcatProcess = spawn("adb", args);
 
-  logcatProcess.stdout.on("data", (buf) => {
-    const lines = buf.toString().split("\n").filter(Boolean);
+//   logcatProcess.stdout.on("data", (buf) => {
+//     const lines = buf.toString().split("\n").filter(Boolean);
 
-    for (const raw of lines) {
-      const parsed = parseLogcatLine(raw);
-      if (!parsed) continue;
+//     for (const raw of lines) {
+//       const parsed = parseLogcatLine(raw);
+//       if (!parsed) continue;
 
-      mainWindow?.webContents.send("logcat:line", { line: parsed });
-    }
+//       mainWindow?.webContents.send("logcat:line", { line: parsed });
+//     }
+//   });
+
+//   logcatProcess.on("exit", () => {
+//     logcatProcess = null;
+//   });
+
+//   return { ok: true };
+// });
+
+ipcMain.handle("logcat:start", (_e, req) => {
+  logcat.start(req.deviceId, (line) => {
+    mainWindow?.webContents.send("logcat:line", { line });
   });
-
-  logcatProcess.on("exit", () => {
-    logcatProcess = null;
-  });
-
   return { ok: true };
+});
+
+ipcMain.handle("logcat:pause", () => {
+  logcat.pause();
+  return { ok: true };
+});
+
+ipcMain.handle("logcat:filter", (_e, req) => {
+  logcat.updateFilter(req.levels, req.tags);
+  return { ok: true };
+});
+
+ipcMain.handle("logcat:export", (_e, req) => {
+  logcat.exportTo(req.filePath);
+  return { ok: true, filePath: req.filePath };
 });
 
 ipcMain.handle("logcat:stop", async () => {

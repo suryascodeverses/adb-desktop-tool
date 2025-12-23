@@ -16,3 +16,8 @@ export interface InstallResult {
   success: boolean;
   output: string;
 }
+
+export interface LogcatExportedResponse {
+  ok: true;
+  filePath: string;
+}

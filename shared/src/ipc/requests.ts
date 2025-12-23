@@ -13,3 +13,19 @@ export interface StartLogcatRequest {
 }
 
 export interface StopLogcatRequest {}
+
+export interface StartLogcatRequest {
+  deviceId?: string;
+}
+
+export interface PauseLogcatRequest {}
+export interface ResumeLogcatRequest {}
+
+export interface UpdateLogcatFilterRequest {
+  levels?: string[]; // ['D', 'I', 'E']
+  tags?: string[]; // ['ActivityManager']
+}
+
+export interface ExportLogcatRequest {
+  filePath: string;
+}

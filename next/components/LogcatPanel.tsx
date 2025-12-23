@@ -3,34 +3,45 @@
 import { useEffect, useState } from "react";
 import { LogcatLine } from "@adb/shared";
 
-export default function Page() {
+export function LogcatPanel() {
   const [lines, setLines] = useState<LogcatLine[]>([]);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     window.electronAPI.logcat.start({});
-
     window.electronAPI.logcat.onLine(({ line }) => {
-      setLines((prev) => [...prev.slice(-500), line]);
+      setLines((p) => [...p.slice(-300), line]);
     });
-
-    return () => {
-      window.electronAPI.logcat.stop();
-    };
-  }, []);
-  useEffect(() => {
-    (window.electronAPI as unknown as any).ping().then(console.log).catch(console.error);
   }, []);
 
   return (
-    <main style={{ padding: 12 }}>
-      <h3>Logcat</h3>
-      <pre style={{ fontSize: 12 }}>
+    <section>
+      <button
+        onClick={() => {
+          paused
+            ? window.electronAPI.logcat.resume()
+            : window.electronAPI.logcat.pause();
+          setPaused(!paused);
+        }}
+      >
+        {paused ? "Resume" : "Pause"}
+      </button>
+
+      <button
+        onClick={() =>
+          window.electronAPI.logcat.export({
+            filePath: "logcat.txt",
+          })
+        }
+      >
+        Export
+      </button>
+
+      <pre>
         {lines.map((l, i) => (
-          <div key={i}>
-            [{l.level}] {l.tag ?? "—"}: {l.message}
-          </div>
+          <div key={i}>{l.raw}</div>
         ))}
       </pre>
-    </main>
+    </section>
   );
 }

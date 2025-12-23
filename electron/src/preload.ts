@@ -40,6 +40,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
     stop: (req?: StopLogcatRequest) => ipcRenderer.invoke("logcat:stop", req),
     onLine: (cb: (evt: LogcatLineEvent) => void) =>
       ipcRenderer.on("logcat:line", (_e, payload) => cb(payload)),
+    pause: () => ipcRenderer.invoke("logcat:pause"),
+    resume: () => ipcRenderer.invoke("logcat:resume"),
+    filter: (r: StartLogcatRequest) => ipcRenderer.invoke("logcat:filter", r),
+    export: (r: StartLogcatRequest) => ipcRenderer.invoke("logcat:export", r),
   },
   ping: () => ipcRenderer.invoke("ping"),
 });
