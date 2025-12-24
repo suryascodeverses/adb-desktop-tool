@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import ApkCard from "../components/ApkCard";
+import { DeviceSnapshot } from "@adb/shared";
 /* =======================
    Types
 ======================= */
@@ -41,6 +42,10 @@ export default function HomePage() {
   const [installedPackages, setInstalledPackages] = useState<
     InstalledPackage[]
   >([]);
+
+  const [deviceSnapshot, setDeviceSnapshot] = useState<DeviceSnapshot | null>(
+    null
+  );
 
   /* =======================
      Device Handling
@@ -173,10 +178,8 @@ export default function HomePage() {
               apk={apk}
               deviceId={selectedDevice}
               installState={getInstallState(apk)}
-              onActionComplete={() => {
-                if (selectedDevice) {
-                  refreshInstalledPackages(selectedDevice);
-                }
+              onActionComplete={(snapshot) => {
+                setDeviceSnapshot(snapshot);
               }}
             />
           ))}
