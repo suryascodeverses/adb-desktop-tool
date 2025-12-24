@@ -1,5 +1,6 @@
 "use client";
 
+import { DeviceSnapshot } from "@adb/shared";
 import React, { useState } from "react";
 
 /* =======================
@@ -47,7 +48,7 @@ interface ApkCardProps {
   apk: ApkMeta;
   deviceId: string | null;
   installState: InstallState;
-  onActionComplete: () => void;
+  onActionComplete: (snapshot: DeviceSnapshot) => void;
 }
 
 /* =======================
@@ -250,6 +251,43 @@ export default function ApkCard({
           {message}
         </div>
       )}
+      <button
+        onClick={async () => {
+          const res = await window.electronAPI.apk.forceStop({
+            deviceId,
+            packageName: apk.meta.packageName,
+          });
+          onActionComplete(res.snapshot);
+        }}
+      >
+        Force Stop
+      </button>
+
+      <button
+        onClick={async () => {
+          const res = await window.electronAPI.apk.clearData({
+            deviceId,
+            packageName: apk.meta.packageName,
+          });
+          onActionComplete(res.snapshot);
+        }}
+      >
+        Clear Data
+      </button>
+
+      <button
+        onClick={async () => {
+          if (!confirm("Uninstall this app?")) return;
+
+          const res = await window.electronAPI.apk.uninstall({
+            deviceId,
+            packageName: apk.meta.packageName,
+          });
+          onActionComplete(res.snapshot);
+        }}
+      >
+        Uninstall
+      </button>
     </div>
   );
 }

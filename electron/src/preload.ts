@@ -6,6 +6,9 @@ import {
   AdbCommandRequest,
   AdbCommandOutputEvent,
   AdbCommandCompletedEvent,
+  ApkUninstallRequest,
+  ApkForceStopRequest,
+  ApkClearDataRequest,
 } from "@adb/shared";
 
 contextBridge.exposeInMainWorld("electronAPI", {
@@ -68,5 +71,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
         "adb:commandCompleted",
         (_e, payload: AdbCommandCompletedEvent) => cb(payload)
       ),
+
+    uninstall: (req: ApkUninstallRequest) =>
+      ipcRenderer.invoke("apk:uninstall", req),
+    forceStop: (req: ApkForceStopRequest) =>
+      ipcRenderer.invoke("apk:forceStop", req),
+    clearData: (req: ApkClearDataRequest) =>
+      ipcRenderer.invoke("apk:clearData", req),
   },
 });

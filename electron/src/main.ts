@@ -16,6 +16,7 @@ import type { DeviceSnapshot, DevicePackageInfo } from "@adb/shared";
 import { LogcatLevel, LogcatLine } from "@adb/shared";
 import { LogcatManager } from "./logcat/logcatManager";
 import { runAdbCommand } from "./adb/adbConsoleManager";
+import { clearApkData, forceStopApk, uninstallApk } from "./adb/apkActions";
 /* logcat modules */
 
 let mainWindow: BrowserWindow | null = null;
@@ -543,4 +544,25 @@ ipcMain.handle("adb:openConsoleWindow", () => {
   adbConsoleWindow.on("closed", () => {
     adbConsoleWindow = null;
   });
+});
+
+ipcMain.handle("apk:uninstall", async (_e, req) => {
+  await uninstallApk(req.deviceId, req.packageName);
+
+  const snapshot = await getDeviceSnapshot(req.deviceId);
+  return { ok: true, snapshot };
+});
+
+ipcMain.handle("apk:forceStop", async (_e, req) => {
+  await forceStopApk(req.deviceId, req.packageName);
+
+  const snapshot = await getDeviceSnapshot(req.deviceId);
+  return { ok: true, snapshot };
+});
+
+ipcMain.handle("apk:clearData", async (_e, req) => {
+  await clearApkData(req.deviceId, req.packageName);
+
+  const snapshot = await getDeviceSnapshot(req.deviceId);
+  return { ok: true, snapshot };
 });

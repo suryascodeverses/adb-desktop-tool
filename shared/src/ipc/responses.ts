@@ -1,3 +1,4 @@
+import { DeviceSnapshot } from "../domain/device";
 import { LogcatLine } from "../domain/logcat";
 
 export interface LogcatStartedResponse {
@@ -29,4 +30,9 @@ export interface AdbCommandOutputEvent {
 
 export interface AdbCommandCompletedEvent {
   exitCode: number;
+}
+
+export interface ApkActionResponse {
+  ok: boolean;
+  snapshot: DeviceSnapshot;
 }

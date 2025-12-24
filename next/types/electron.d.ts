@@ -56,6 +56,14 @@ declare global {
         onCompleted: (cb: (evt: AdbCommandCompletedEvent) => void) => void;
       };
 
+      apk: {
+        uninstall: (req: ApkUninstallRequest) => Promise<ApkActionResponse>;
+
+        forceStop: (req: ApkForceStopRequest) => Promise<ApkActionResponse>;
+
+        clearData: (req: ApkClearDataRequest) => Promise<ApkActionResponse>;
+      };
+
       window: {
         openLogcat: () => Promise<void>;
         openAdbConsole: () => Promise<void>;

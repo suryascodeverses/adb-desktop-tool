@@ -34,3 +34,14 @@ export interface AdbCommandRequest {
   deviceId?: string;
   command: string; // e.g. "shell pm list packages"
 }
+
+export interface ApkActionRequest {
+  deviceId: string;
+  packageName: string;
+}
+
+export interface ApkUninstallRequest extends ApkActionRequest {}
+
+export interface ApkForceStopRequest extends ApkActionRequest {}
+
+export interface ApkClearDataRequest extends ApkActionRequest {}
