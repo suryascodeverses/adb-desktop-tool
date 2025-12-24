@@ -48,8 +48,17 @@ declare global {
         filter: (r: any) => Promise<any>;
         export: (r: any) => Promise<any>;
       };
+      adb: {
+        runCommand: (req: AdbCommandRequest) => Promise<{ ok: true }>;
+
+        onOutput: (cb: (evt: AdbCommandOutputEvent) => void) => void;
+
+        onCompleted: (cb: (evt: AdbCommandCompletedEvent) => void) => void;
+      };
+
       window: {
-        openLogcat: () => Promise<any>;
+        openLogcat: () => Promise<void>;
+        openAdbConsole: () => Promise<void>;
       };
     };
   }

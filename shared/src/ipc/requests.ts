@@ -29,3 +29,8 @@ export interface UpdateLogcatFilterRequest {
 export interface ExportLogcatRequest {
   filePath: string;
 }
+
+export interface AdbCommandRequest {
+  deviceId?: string;
+  command: string; // e.g. "shell pm list packages"
+}

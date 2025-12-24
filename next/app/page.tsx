@@ -185,6 +185,10 @@ export default function HomePage() {
       <button onClick={() => window.electronAPI.window.openLogcat()}>
         Open Logcat
       </button>
+
+      <button onClick={() => window.electronAPI.window.openAdbConsole()}>
+        Open ADB Console
+      </button>
     </div>
   );
 }

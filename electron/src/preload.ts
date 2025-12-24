@@ -3,6 +3,9 @@ import {
   StartLogcatRequest,
   StopLogcatRequest,
   LogcatLineEvent,
+  AdbCommandRequest,
+  AdbCommandOutputEvent,
+  AdbCommandCompletedEvent,
 } from "@adb/shared";
 
 contextBridge.exposeInMainWorld("electronAPI", {
@@ -48,5 +51,22 @@ contextBridge.exposeInMainWorld("electronAPI", {
   ping: () => ipcRenderer.invoke("ping"),
   window: {
     openLogcat: () => ipcRenderer.invoke("logcat:openWindow"),
+    openAdbConsole: () => ipcRenderer.invoke("adb:openConsoleWindow"),
+  },
+  adb: {
+    runCommand: (req: AdbCommandRequest) =>
+      ipcRenderer.invoke("adb:runCommand", req),
+
+    onOutput: (cb: (evt: AdbCommandOutputEvent) => void) =>
+      ipcRenderer.on(
+        "adb:commandOutput",
+        (_e, payload: AdbCommandOutputEvent) => cb(payload)
+      ),
+
+    onCompleted: (cb: (evt: AdbCommandCompletedEvent) => void) =>
+      ipcRenderer.on(
+        "adb:commandCompleted",
+        (_e, payload: AdbCommandCompletedEvent) => cb(payload)
+      ),
   },
 });

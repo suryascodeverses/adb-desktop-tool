@@ -21,3 +21,12 @@ export interface LogcatExportedResponse {
   ok: true;
   filePath: string;
 }
+
+export interface AdbCommandOutputEvent {
+  stream: "stdout" | "stderr";
+  data: string;
+}
+
+export interface AdbCommandCompletedEvent {
+  exitCode: number;
+}

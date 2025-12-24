@@ -15,6 +15,7 @@ import type { DeviceSnapshot, DevicePackageInfo } from "@adb/shared";
 // import { ChildProcessWithoutNullStreams } from "node:child_process";
 import { LogcatLevel, LogcatLine } from "@adb/shared";
 import { LogcatManager } from "./logcat/logcatManager";
+import { runAdbCommand } from "./adb/adbConsoleManager";
 /* logcat modules */
 
 let mainWindow: BrowserWindow | null = null;
@@ -487,3 +488,59 @@ function parseLogcatLine(raw: string): LogcatLine | null {
     raw,
   };
 }
+
+/* adb console window */
+
+ipcMain.handle("adb:runCommand", (event, req) => {
+  const sender = event.sender;
+
+  runAdbCommand(
+    req.deviceId,
+    req.command,
+    (stream, data) => {
+      sender.send("adb:commandOutput", {
+        stream,
+        data,
+      });
+    },
+    (exitCode) => {
+      sender.send("adb:commandCompleted", {
+        exitCode,
+      });
+    }
+  );
+
+  return { ok: true };
+});
+
+let adbConsoleWindow: BrowserWindow | null = null;
+
+ipcMain.handle("adb:openConsoleWindow", () => {
+  if (adbConsoleWindow && !adbConsoleWindow.isDestroyed()) {
+    adbConsoleWindow.focus();
+    return;
+  }
+
+  adbConsoleWindow = new BrowserWindow({
+    width: 900,
+    height: 600,
+    title: "ADB Console",
+    webPreferences: {
+      preload: __dirname + "/preload.js",
+    },
+  });
+
+  if (IS_DEV) {
+    // Next.js dev server
+    adbConsoleWindow.loadURL("http://localhost:3000/adb-console");
+  } else {
+    // Next export output
+    adbConsoleWindow.loadFile(
+      path.join(__dirname, "../renderer/adb-console/index.html")
+    );
+  }
+
+  adbConsoleWindow.on("closed", () => {
+    adbConsoleWindow = null;
+  });
+});
