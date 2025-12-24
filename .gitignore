@@ -9,6 +9,8 @@ logs/
 *.log
 *.tmp
 tsconfig.tsbuildinfo
+adb/tsconfig.tsbuildinfo
+shared/tsconfig.tsbuildinfo
 
 # Build artifacts
 dist/
