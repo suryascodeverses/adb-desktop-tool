@@ -362,6 +362,38 @@ ipcMain.handle("device:snapshot", (_, deviceId) => getDeviceSnapshot(deviceId));
 /* ---------------- LOGCAT ---------------- */
 const logcat = new LogcatManager();
 
+let logcatWindow: BrowserWindow | null = null;
+
+ipcMain.handle("logcat:openWindow", () => {
+  if (logcatWindow && !logcatWindow.isDestroyed()) {
+    logcatWindow.focus();
+    return;
+  }
+
+  logcatWindow = new BrowserWindow({
+    width: 1000,
+    height: 700,
+    title: "Logcat",
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+    },
+  });
+
+  if (IS_DEV) {
+    // Next.js dev server
+    logcatWindow.loadURL("http://localhost:3000/logcat");
+  } else {
+    // Next export output
+    logcatWindow.loadFile(
+      path.join(__dirname, "../renderer/logcat/index.html")
+    );
+  }
+
+  logcatWindow.on("closed", () => {
+    logcatWindow = null;
+  });
+});
+
 // ipcMain.handle("logcat:start", async (_evt, { deviceId }) => {
 //   console.log("[MAIN] logcat:start handler called");
 
@@ -393,8 +425,13 @@ const logcat = new LogcatManager();
 
 ipcMain.handle("logcat:start", (_e, req) => {
   logcat.start(req.deviceId, (line) => {
-    mainWindow?.webContents.send("logcat:line", { line });
+    logcatWindow?.webContents.send("logcat:line", { line });
   });
+  return { ok: true };
+});
+
+ipcMain.handle("logcat:resume", () => {
+  logcat.resume();
   return { ok: true };
 });
 

@@ -48,6 +48,9 @@ declare global {
         filter: (r: any) => Promise<any>;
         export: (r: any) => Promise<any>;
       };
+      window: {
+        openLogcat: () => Promise<any>;
+      };
     };
   }
 }

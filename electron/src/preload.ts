@@ -46,4 +46,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     export: (r: StartLogcatRequest) => ipcRenderer.invoke("logcat:export", r),
   },
   ping: () => ipcRenderer.invoke("ping"),
+  window: {
+    openLogcat: () => ipcRenderer.invoke("logcat:openWindow"),
+  },
 });

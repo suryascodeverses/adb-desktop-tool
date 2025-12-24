@@ -2,8 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import ApkCard from "../components/ApkCard";
-import { LogcatPanel } from "../components/LogcatPanel";
-
 /* =======================
    Types
 ======================= */
@@ -184,8 +182,9 @@ export default function HomePage() {
           ))}
         </div>
       </section>
-
-      <LogcatPanel />
+      <button onClick={() => window.electronAPI.window.openLogcat()}>
+        Open Logcat
+      </button>
     </div>
   );
 }
