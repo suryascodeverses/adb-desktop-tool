@@ -12,6 +12,8 @@ tsconfig.tsbuildinfo
 adb/tsconfig.tsbuildinfo
 shared/tsconfig.tsbuildinfo
 
+electron/logcat
+
 # Build artifacts
 dist/
 build/

@@ -1,6 +1,7 @@
 import { spawn, ChildProcessWithoutNullStreams } from "child_process";
 import fs from "fs";
 import { LogcatLine } from "@adb/shared";
+import path from "path";
 
 export class LogcatManager {
   private proc: ChildProcessWithoutNullStreams | null = null;
@@ -61,8 +62,14 @@ export class LogcatManager {
   }
 
   exportTo(filePath: string) {
+    const logcatDir = path.join(process.cwd(), "logcat");
+    if (!fs.existsSync(logcatDir)) {
+      fs.mkdirSync(logcatDir, { recursive: true });
+    }
+    const fileName = path.basename(filePath);
+    const fullPath = path.join(logcatDir, fileName);
     fs.writeFileSync(
-      filePath,
+      fullPath,
       this.buffer.map((l) => l.raw).join("\n"),
       "utf8"
     );
