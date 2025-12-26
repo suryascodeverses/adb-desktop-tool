@@ -7,7 +7,7 @@ import ApkParser from "app-info-parser";
 import { execFile, spawn, ChildProcessWithoutNullStreams } from "child_process";
 const { dialog, ipcMain } = electron;
 
-import { AdbHelper, parseManifest } from "@adb/core";
+import { adbHelper, parseManifest } from "@adb/core";
 import type { DeviceSnapshot, DevicePackageInfo } from "@adb/shared";
 
 /* logcat modules */
@@ -22,7 +22,7 @@ import { clearApkData, forceStopApk, uninstallApk } from "./adb/apkActions";
 let mainWindow: BrowserWindow | null = null;
 let logcatProcess: ChildProcessWithoutNullStreams | null = null;
 
-const adb = new AdbHelper();
+const adb = adbHelper;
 
 const IS_DEV = !app.isPackaged;
 const NEXT_PORT = 3000;
@@ -310,10 +310,10 @@ ipcMain.handle("apk:install", async (_, deviceId, apkPath) => {
   return getDeviceSnapshot(deviceId);
 });
 
-ipcMain.handle("apk:uninstall", async (_, deviceId, packageName) => {
-  await adb.exec(["-s", deviceId, "uninstall", packageName]);
-  return getDeviceSnapshot(deviceId);
-});
+// ipcMain.handle("apk:uninstall", async (_, deviceId, packageName) => {
+//   await adb.exec(["-s", deviceId, "uninstall", packageName]);
+//   return getDeviceSnapshot(deviceId);
+// });
 
 ipcMain.handle("apk:launch", async (_, deviceId, packageName) => {
   await adb.exec([

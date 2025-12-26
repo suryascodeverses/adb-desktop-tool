@@ -1,2 +1,3 @@
-export * from "./adbHelper";
+export { AdbHelper, adbHelper } from "./adbHelper";
+
 export * from "./manifestParser";

@@ -4,7 +4,7 @@
   "private": true,
   "description": "ADB Desktop Tool — Electron + Next.js + TypeScript",
   "scripts": {
-    "clean": "rimraf node_modules adb/node_modules electron/node_modules next/node_modules shared/node_modules adb/dist electron/dist shared/dist next/.next adb/tsconfig.tsbuildinfo shared/tsconfig.tsbuildinfo",
+    "clean": "rimraf -s node_modules adb/node_modules electron/node_modules next/node_modules shared/node_modules adb/dist electron/dist shared/dist next/.next adb/tsconfig.tsbuildinfo shared/tsconfig.tsbuildinfo",
     "clean:build": "rimraf shared/dist adb/dist electron/dist next/.next adb/tsconfig.tsbuildinfo shared/tsconfig.tsbuildinfo",
     "build:shared": "pnpm --filter @adb/shared build",
     "build:adb": "pnpm --filter @adb/core build",

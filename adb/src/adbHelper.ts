@@ -205,3 +205,5 @@ export class AdbHelper extends EventEmitter {
       .filter(Boolean);
   }
 }
+
+export const adbHelper = new AdbHelper();
