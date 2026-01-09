@@ -1,3 +1,5 @@
+/* /next/app/logcat/page.tsx */
+
 "use client";
 
 import { useEffect, useState } from "react";

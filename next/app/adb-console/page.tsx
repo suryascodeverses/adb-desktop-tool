@@ -1,3 +1,4 @@
+/* /next/app/adb-console/page.tsx */
 "use client";
 
 import { AdbCommandCompletedEvent, AdbCommandOutputEvent } from "@adb/shared";

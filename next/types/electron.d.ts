@@ -1,3 +1,5 @@
+/* /next/types/electron.d.ts */
+
 declare global {
   interface File {
     path: string;
