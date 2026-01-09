@@ -4,8 +4,9 @@ import "./globals.css";
 import React from "react";
 
 export const metadata = {
-  title: "ADB Desktop Tool",
-  description: "ADB Desktop GUI built with Next.js + Electron",
+  title: "ADB Manager - Desktop Tool",
+  description:
+    "Professional ADB Desktop GUI built with Next.js + Electron for Android development",
 };
 
 export default function RootLayout({
@@ -15,7 +16,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-gray-100 text-gray-900">{children}</body>
+      <body className="bg-slate-100 text-slate-900 antialiased">
+        {children}
+      </body>
     </html>
   );
 }
