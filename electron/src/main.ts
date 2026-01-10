@@ -453,10 +453,7 @@ ipcMain.handle("logcat:export", (_e, req) => {
 });
 
 ipcMain.handle("logcat:stop", async () => {
-  if (logcatProcess) {
-    logcatProcess.kill();
-    logcatProcess = null;
-  }
+  logcat.stop();
   return { ok: true };
 });
 
