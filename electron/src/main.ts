@@ -213,7 +213,7 @@ ipcMain.handle("apk:select", async () => {
     filters: [{ name: "Android APK", extensions: ["apk"] }],
   });
 
-  console.log("Dialog result:", result);
+  // console.log("Dialog result:", result);
 
   if (!result || result.length === 0) return [];
 

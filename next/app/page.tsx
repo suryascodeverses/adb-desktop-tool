@@ -88,13 +88,18 @@ export default function HomePage() {
   async function addApksFromDialog() {
     const results = await window.electronAPI.selectApks();
 
-    setApkList((prev) => [
-      ...prev,
-      ...results.map((r: any) => ({
-        path: r.path,
-        meta: r.meta || { packageName: "Unknown / Failed to parse" },
-      })),
-    ]);
+    const newApks = results.map((r: any) => ({
+      path: r.path,
+      meta: r.meta || { packageName: "Unknown / Failed to parse" },
+    }));
+
+    setApkList((prev) => {
+      const existingPaths = new Set(prev.map((apk) => apk.path));
+      const filteredNew = newApks.filter(
+        (apk: ApkEntry) => !existingPaths.has(apk.path)
+      );
+      return [...prev, ...filteredNew];
+    });
   }
 
   /* =======================
@@ -368,12 +373,15 @@ export default function HomePage() {
               <div className="space-y-3">
                 {apkList.map((apk, idx) => (
                   <ApkCard
-                    key={idx}
+                    key={`${apk.path}-${idx}`}
                     apk={apk}
                     deviceId={selectedDevice}
                     installState={getInstallState(apk)}
                     onActionComplete={(snapshot) => {
                       setDeviceSnapshot(snapshot);
+                      if (selectedDevice) {
+                        refreshInstalledPackages(selectedDevice);
+                      }
                     }}
                   />
                 ))}

@@ -1,6 +1,7 @@
 import { spawn } from "child_process";
 
 function runAdb(deviceId: string, args: string[]): Promise<{ code: number }> {
+  console.log("Running ADB command on device:");
   return new Promise((resolve) => {
     const fullArgs = ["-s", deviceId, ...args];
     const proc = spawn("adb", fullArgs);

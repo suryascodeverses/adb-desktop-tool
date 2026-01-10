@@ -14,18 +14,19 @@ export default function AdbConsolePage() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    window.electronAPI.adb.onOutput(
-      ({ stream, data }: AdbCommandOutputEvent) => {
-        setOutput((prev) => [...prev, `[${stream}] ${data}`]);
-      }
-    );
+    const offOutput = window.electronAPI.adb.onOutput((evt) => {
+      setOutput((prev) => [...prev, `[${evt.stream}] ${evt.data}`]);
+    });
 
-    window.electronAPI.adb.onCompleted(
-      ({ exitCode }: AdbCommandCompletedEvent) => {
-        setOutput((prev) => [...prev, `\n[exit ${exitCode}]\n`]);
-        setIsRunning(false);
-      }
-    );
+    const offCompleted = window.electronAPI.adb.onCompleted((evt) => {
+      setOutput((prev) => [...prev, `[exit ${evt.exitCode}]`]);
+      setIsRunning(false);
+    });
+
+    return () => {
+      if (offOutput) offOutput();
+      if (offCompleted) offCompleted();
+    };
   }, []);
 
   useEffect(() => {
@@ -36,7 +37,7 @@ export default function AdbConsolePage() {
     if (!command.trim() || isRunning) return;
 
     setIsRunning(true);
-    setOutput((prev) => [...prev, `$ ${command}`, ""]);
+    setOutput((prev) => [...prev, `$ ${command}`]);
     setCommandHistory((prev) => [...prev, command]);
     setHistoryIndex(-1);
 
@@ -77,16 +78,10 @@ export default function AdbConsolePage() {
   };
 
   const quickCommands = [
-    { label: "List Packages", cmd: "adb shell pm list packages" },
-    { label: "List Devices", cmd: "adb devices" },
-    {
-      label: "Get Device Info",
-      cmd: "adb shell getprop ro.build.version.release",
-    },
-    {
-      label: "Screen Record",
-      cmd: "adb shell screenrecord /sdcard/screen.mp4",
-    },
+    { label: "List Packages", cmd: "shell pm list packages" },
+    { label: "List Devices", cmd: "devices" },
+    { label: "Device Info", cmd: "shell getprop ro.build.version.release" },
+    { label: "Screen Record", cmd: "shell screenrecord /sdcard/screen.mp4" },
   ];
 
   return (
@@ -114,7 +109,7 @@ export default function AdbConsolePage() {
               <div>
                 <h1 className="text-xl font-bold text-white">ADB Console</h1>
                 <p className="text-sm text-slate-400">
-                  Execute ADB commands directly
+                  Interactive ADB command terminal
                 </p>
               </div>
             </div>
@@ -175,9 +170,60 @@ export default function AdbConsolePage() {
         </div>
       </div>
 
-      {/* Command Input */}
-      <div className="px-6 py-4 bg-slate-800/30 border-b border-slate-700">
-        <div className="flex gap-3">
+      {/* Output Terminal */}
+      <div className="p-6 flex flex-col h-[calc(100vh-240px)]">
+        <div
+          ref={outputRef}
+          className="flex-1 overflow-auto bg-black rounded-t-lg border border-b-0 border-slate-700 shadow-2xl font-mono text-sm"
+        >
+          {output.length === 0 ? (
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center">
+                <svg
+                  className="w-16 h-16 text-slate-700 mx-auto mb-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <p className="text-slate-500 font-medium">
+                  Interactive ADB Terminal
+                </p>
+                <p className="text-sm text-slate-600 mt-1">
+                  Type commands below (without 'adb' prefix)
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="p-4">
+              {output.map((line, i) => (
+                <div
+                  key={i}
+                  className={`py-0.5 hover:bg-slate-900/50 px-2 -mx-2 rounded transition-colors ${
+                    line.startsWith("$")
+                      ? "text-blue-400 font-semibold"
+                      : line.includes("[exit")
+                      ? "text-yellow-400"
+                      : line.includes("[stderr]")
+                      ? "text-red-400"
+                      : "text-green-400"
+                  }`}
+                >
+                  {line || "\u00A0"}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Command Input (at bottom of terminal) */}
+        <div className="flex gap-2 bg-black border border-t-0 border-slate-700 rounded-b-lg p-3">
           <div className="flex-1 relative">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-green-400 font-mono text-sm">
               $
@@ -188,15 +234,15 @@ export default function AdbConsolePage() {
               value={command}
               onChange={(e) => setCommand(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="adb shell pm list packages"
+              placeholder="devices, shell pm list packages, etc..."
               disabled={isRunning}
-              className="w-full pl-8 pr-4 py-3 bg-black border border-slate-700 rounded-lg text-green-400 placeholder-slate-600 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full pl-8 pr-4 py-2 bg-slate-900 border border-slate-700 rounded text-green-400 placeholder-slate-600 font-mono text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
           <button
             onClick={runCommand}
             disabled={!command.trim() || isRunning}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed text-white rounded font-medium transition-colors flex items-center gap-2"
           >
             {isRunning ? (
               <>
@@ -236,7 +282,7 @@ export default function AdbConsolePage() {
           </button>
           <button
             onClick={clearOutput}
-            className="px-4 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+            className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded font-medium transition-colors"
             title="Clear output"
           >
             <svg
@@ -254,7 +300,8 @@ export default function AdbConsolePage() {
             </svg>
           </button>
         </div>
-        <p className="mt-2 text-xs text-slate-500">
+
+        <p className="mt-2 text-xs text-slate-500 text-center">
           Press{" "}
           <kbd className="px-2 py-0.5 bg-slate-700 rounded border border-slate-600 font-mono">
             ↑
@@ -263,63 +310,12 @@ export default function AdbConsolePage() {
           <kbd className="px-2 py-0.5 bg-slate-700 rounded border border-slate-600 font-mono ml-1">
             ↓
           </kbd>{" "}
-          to navigate history,
+          for history •
           <kbd className="px-2 py-0.5 bg-slate-700 rounded border border-slate-600 font-mono ml-1">
             Enter
           </kbd>{" "}
-          to execute
+          to execute • Commands are executed without "adb" prefix
         </p>
-      </div>
-
-      {/* Output Terminal */}
-      <div className="p-6">
-        <div
-          ref={outputRef}
-          className="h-[calc(100vh-340px)] overflow-auto bg-black rounded-lg border border-slate-700 shadow-2xl font-mono text-sm"
-        >
-          {output.length === 0 ? (
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center">
-                <svg
-                  className="w-16 h-16 text-slate-700 mx-auto mb-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                <p className="text-slate-500 font-medium">No output yet</p>
-                <p className="text-sm text-slate-600 mt-1">
-                  Enter a command to get started
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="p-4">
-              {output.map((line, i) => (
-                <div
-                  key={i}
-                  className={`py-0.5 hover:bg-slate-900/50 px-2 -mx-2 rounded transition-colors ${
-                    line.startsWith("$")
-                      ? "text-blue-400 font-semibold"
-                      : line.includes("[exit")
-                      ? "text-yellow-400"
-                      : line.includes("[stderr]")
-                      ? "text-red-400"
-                      : "text-green-400"
-                  }`}
-                >
-                  {line || "\u00A0"}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
     </div>
   );

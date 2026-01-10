@@ -34,29 +34,10 @@ export default function ApkCard({
   const [message, setMessage] = useState("");
 
   const [actionInProgress, setActionInProgress] = useState<
-    null | "forceStop" | "clearData" | "uninstall"
+    null | "install" | "forceStop" | "clearData" | "uninstall" | "launch"
   >(null);
 
   const pkg = apk.meta.packageName;
-  const busy = status === "WORKING";
-
-  async function run(action: () => Promise<{ snapshot: DeviceSnapshot }>) {
-    try {
-      setStatus("WORKING");
-      const res = await action();
-      setStatus("SUCCESS");
-      onActionComplete(res.snapshot);
-      setMessage("Action successful");
-    } catch (e: any) {
-      setStatus("ERROR");
-      setMessage(e?.message || "Action failed");
-    } finally {
-      setTimeout(() => {
-        setStatus("IDLE");
-        setMessage("");
-      }, 1500);
-    }
-  }
 
   if (!pkg) return null;
 
@@ -161,9 +142,153 @@ export default function ApkCard({
           </p>
         </div>
 
-        {/* Actions */}
+        {/* Actions - NOT INSTALLED or UPGRADE AVAILABLE */}
+        {(installState === "NOT_INSTALLED" ||
+          installState === "UPGRADE_AVAILABLE") && (
+          <div className="flex gap-2 flex-wrap">
+            <button
+              disabled={!!actionInProgress || !deviceId}
+              onClick={async () => {
+                if (!deviceId) return;
+                setActionInProgress("install");
+                try {
+                  await window.electronAPI.installApk(deviceId, apk.path);
+                  setStatus("SUCCESS");
+                  setMessage(
+                    installState === "UPGRADE_AVAILABLE"
+                      ? "Updated successfully"
+                      : "Installed successfully"
+                  );
+                  window.location.reload();
+                } catch (e: any) {
+                  setStatus("ERROR");
+                  setMessage(e?.message || "Installation failed");
+                  setTimeout(() => {
+                    setStatus("IDLE");
+                    setMessage("");
+                  }, 2000);
+                } finally {
+                  setActionInProgress(null);
+                }
+              }}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+            >
+              {actionInProgress === "install" ? (
+                <>
+                  <svg
+                    className="w-4 h-4 animate-spin"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                  {installState === "UPGRADE_AVAILABLE"
+                    ? "Updating..."
+                    : "Installing..."}
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    />
+                  </svg>
+                  {installState === "UPGRADE_AVAILABLE" ? "Update" : "Install"}
+                </>
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* Actions - INSTALLED */}
         {installState === "INSTALLED" && (
           <div className="flex gap-2 flex-wrap">
+            <button
+              disabled={!!actionInProgress || !deviceId}
+              onClick={async () => {
+                if (!deviceId) return;
+                setActionInProgress("launch");
+                try {
+                  await window.electronAPI.launchApk(
+                    deviceId,
+                    apk.meta.packageName
+                  );
+                  setStatus("SUCCESS");
+                  setMessage("App launched");
+                  setTimeout(() => {
+                    setStatus("IDLE");
+                    setMessage("");
+                  }, 2000);
+                } catch (e: any) {
+                  setStatus("ERROR");
+                  setMessage(e?.message || "Launch failed");
+                  setTimeout(() => {
+                    setStatus("IDLE");
+                    setMessage("");
+                  }, 2000);
+                } finally {
+                  setActionInProgress(null);
+                }
+              }}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+            >
+              {actionInProgress === "launch" ? (
+                <>
+                  <svg
+                    className="w-4 h-4 animate-spin"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                  Launching...
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Launch
+                </>
+              )}
+            </button>
+
             <button
               disabled={!!actionInProgress}
               onClick={async () => {
@@ -174,6 +299,19 @@ export default function ApkCard({
                     packageName: apk.meta.packageName,
                   });
                   onActionComplete(res.snapshot);
+                  setStatus("SUCCESS");
+                  setMessage("Force stopped");
+                  setTimeout(() => {
+                    setStatus("IDLE");
+                    setMessage("");
+                  }, 2000);
+                } catch (e: any) {
+                  setStatus("ERROR");
+                  setMessage(e?.message || "Failed");
+                  setTimeout(() => {
+                    setStatus("IDLE");
+                    setMessage("");
+                  }, 2000);
                 } finally {
                   setActionInProgress(null);
                 }
@@ -233,6 +371,19 @@ export default function ApkCard({
                     packageName: apk.meta.packageName,
                   });
                   onActionComplete(res.snapshot);
+                  setStatus("SUCCESS");
+                  setMessage("Data cleared");
+                  setTimeout(() => {
+                    setStatus("IDLE");
+                    setMessage("");
+                  }, 2000);
+                } catch (e: any) {
+                  setStatus("ERROR");
+                  setMessage(e?.message || "Failed");
+                  setTimeout(() => {
+                    setStatus("IDLE");
+                    setMessage("");
+                  }, 2000);
                 } finally {
                   setActionInProgress(null);
                 }
@@ -288,6 +439,16 @@ export default function ApkCard({
                     packageName: apk.meta.packageName,
                   });
                   onActionComplete(res.snapshot);
+                  setStatus("SUCCESS");
+                  setMessage("Uninstalled successfully");
+                  window.location.reload();
+                } catch (e: any) {
+                  setStatus("ERROR");
+                  setMessage(e?.message || "Uninstall failed");
+                  setTimeout(() => {
+                    setStatus("IDLE");
+                    setMessage("");
+                  }, 2000);
                 } finally {
                   setActionInProgress(null);
                 }
